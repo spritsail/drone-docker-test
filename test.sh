@@ -2,6 +2,9 @@
 set -e
 set -o pipefail
 
+# ANSI colour escape sequences
+RED='\033[0;31m'
+RESET='\033[0m'
 error() { >&2 echo -e "${RED}Error: $@${RESET}"; }
 
 
@@ -27,16 +30,16 @@ RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
 # Start the container
 CONTAINER_ID="$(docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
 
-# Exit if the container stops
-trap 'error "The container exited unexpectedly :("; exit 10' USR1
-( docker wait "$CONTAINER_ID" >/dev/null && kill -s USR1 $$ ) &
-
 # Start the container and print the logs
-docker start --attach "$CONTAINER_ID" &
+# and exit if the container stops
+trap 'error "The container exited unexpectedly :("; exit 10' USR1
+( docker start --attach --interactive "$CONTAINER_ID" ; kill -s USR1 $$ ) &
 
 # Get container IP, hopefully before the container exits
+sleep 1
 CONTAINER_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)"
 if [ -z "$CONTAINER_IP" ]; then
+    trap ':' USR1
     docker kill "$CONTAINER_ID" >/dev/null 2>&1 || true
     docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true
     error "No container IP found"
@@ -47,7 +50,7 @@ fi
 sleep $DELAY
 
 # Attempt to curl
-curl -sSL \
+curl -L \
     --retry $RETRY \
     --retry-delay $RETRY_DELAY \
     --retry-max-time 10 \
