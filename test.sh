@@ -2,6 +2,8 @@
 set -e
 set -o pipefail
 
+error() { >&2 echo -e "${RED}Error: $@${RESET}"; }
+
 
 # $PLUGIN_REPO          tag for the image to run and test
 # $PLUGIN_DELAY         startup delay for the container before curl'ing it
@@ -24,14 +26,22 @@ RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
 
 # Start the container
 CONTAINER_ID="$(docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
-CONTAINER_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)"
 
 # Exit if the container stops
-trap '>&2 echo "The container exited unexpectedly :("; exit 10' USR1
+trap 'error "The container exited unexpectedly :("; exit 10' USR1
 ( docker wait "$CONTAINER_ID" >/dev/null && kill -s USR1 $$ ) &
 
 # Start the container and print the logs
 docker start --attach "$CONTAINER_ID" &
+
+# Get container IP, hopefully before the container exits
+CONTAINER_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)"
+if [ -z "$CONTAINER_IP" ]; then
+    docker kill "$CONTAINER_ID" >/dev/null 2>&1 || true
+    docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true
+    error "No container IP found"
+    exit 8
+fi
 
 # Wait
 sleep $DELAY
