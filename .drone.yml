@@ -1,0 +1,18 @@
+pipeline:
+  build:
+    image: spritsail/docker-build
+    volumes: [ '/var/run/docker.sock:/var/run/docker.sock' ]
+    repo: test-dev
+
+  publish:
+    image: spritsail/docker-publish
+    when: { branch: [ master ], event: [ push, tag, deployment ] }
+    volumes: [ '/var/run/docker.sock:/var/run/docker.sock' ]
+    secrets: [ docker_username, docker_password, microbadger_token ]
+    from: test-dev
+    repo: spritsail/docker-test
+
+  notify:
+    image: spritsail/notify
+    when: { status: [ success, failure ] }
+    secrets: [ webhook_url, notify_token ]
