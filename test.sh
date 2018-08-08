@@ -62,6 +62,11 @@ curl -L \
 # Test the output
 if [ -n "$PLUGIN_PIPE" ]; then
     eval $PLUGIN_PIPE < /tmp/output
+
+    retval=$?
+    if [ $retval != 0 ]; then
+        echo "Pipe exited with $retval"
+    fi
 fi
 rm /tmp/output
 
