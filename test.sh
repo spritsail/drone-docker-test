@@ -65,9 +65,11 @@ fi
 
 # Test the output
 if [ -n "$PLUGIN_PIPE" ]; then
+    set +e
     eval $PLUGIN_PIPE < /tmp/output
-
     retval=$?
+    set -e
+
     if [ $retval != 0 ]; then
         echo "Pipe exited with $retval"
     fi
