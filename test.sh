@@ -57,7 +57,11 @@ curl -L \
     --retry-connrefused \
     $PLUGIN_CURL_OPTS \
     "$CONTAINER_IP$PLUGIN_CURL" \
-        | tee /tmp/output
+        > /tmp/output
+
+if [ "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1 ]; then
+    cat /tmp/output
+fi
 
 # Test the output
 if [ -n "$PLUGIN_PIPE" ]; then

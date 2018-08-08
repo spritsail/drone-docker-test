@@ -40,3 +40,4 @@ pipeline:
 - `curl_opts`     additional options to pass to curl
 - `run_args`      arguments to pass to `docker create`
 - `run_cmd`       override docker container CMD
+- `verbose`       print the curl output. _default_ `false`
