@@ -26,7 +26,7 @@ pipeline:
     image: spritsail/docker-test
     volumes: [ '/var/run/docker.sock:/var/run/docker.sock' ]
     repo: test-me:latest
-    curl: ':8080/healthcheck
+    curl: ':8080/healthcheck'
     retry: 5
     pipe: grep -qw 'online'
 ```
