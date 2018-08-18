@@ -7,6 +7,7 @@ RED='\033[0;31m'
 RESET='\033[0m'
 error() { >&2 echo -e "${RED}Error: $@${RESET}"; }
 
+verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 
 # $PLUGIN_REPO          tag for the image to run and test
 # $PLUGIN_DELAY         startup delay for the container before curl'ing it
@@ -28,7 +29,7 @@ RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
 
 
 # Start the container
-CONTAINER_ID="$(docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
+CONTAINER_ID="$(if verbose; then set -x; fi; docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
 
 # Start the container and print the logs
 # and exit if the container stops
@@ -46,6 +47,10 @@ if [ -z "$CONTAINER_IP" ]; then
     exit 8
 fi
 
+(
+
+if verbose; then set -x; fi
+
 # Wait
 sleep $DELAY
 
@@ -58,17 +63,21 @@ curl -L \
     $PLUGIN_CURL_OPTS \
     "$CONTAINER_IP$PLUGIN_CURL" \
         > /tmp/output
+)
 
-if [ "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1 ]; then
+if verbose; then
     cat /tmp/output
 fi
 
 # Test the output
 if [ -n "$PLUGIN_PIPE" ]; then
     set +e
+    if verbose; then set -x; fi
+
     eval $PLUGIN_PIPE < /tmp/output
     retval=$?
     set -e
+    set +x
 
     if [ $retval != 0 ]; then
         error "Pipe exited with $retval"
