@@ -71,7 +71,8 @@ if [ -n "$PLUGIN_PIPE" ]; then
     set -e
 
     if [ $retval != 0 ]; then
-        echo "Pipe exited with $retval"
+        error "Pipe exited with $retval"
+        exit $retval
     fi
 fi
 rm /tmp/output
