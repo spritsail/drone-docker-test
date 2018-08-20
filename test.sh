@@ -48,29 +48,48 @@ if [ -z "$CONTAINER_IP" ]; then
 fi
 
 (
-
 if verbose; then set -x; fi
 
 # Wait
 sleep $DELAY
-
-# Attempt to curl
-curl -L \
-    --retry $RETRY \
-    --retry-delay $RETRY_DELAY \
-    --retry-max-time 10 \
-    --retry-connrefused \
-    $PLUGIN_CURL_OPTS \
-    "$CONTAINER_IP$PLUGIN_CURL" \
-        > /tmp/output
 )
 
-if verbose; then
-    cat /tmp/output
+# Run pre-curl script
+if [ -n "$PLUGIN_EXEC_PRE" ]; then
+    set +e
+    if verbose; then DEBUG=-x; fi
+    echo $PLUGIN_EXEC_PRE | docker exec -i "$CONTAINER_ID" sh $DEBUG
+    retval=$?
+    set -e
+
+    if [ $retval != 0 ]; then
+        error "Pre script exited with $retval"
+        exit $retval
+    fi
+fi
+
+# Attempt to curl
+if [ -n "$PLUGIN_CURL" ]; then
+    (
+    if verbose; then set -x; fi
+
+    curl -L \
+        --retry $RETRY \
+        --retry-delay $RETRY_DELAY \
+        --retry-max-time 10 \
+        --retry-connrefused \
+        $PLUGIN_CURL_OPTS \
+        "$CONTAINER_IP$PLUGIN_CURL" \
+            > /tmp/output
+    )
+
+    if verbose; then
+        cat /tmp/output
+    fi
 fi
 
 # Test the output
-if [ -n "$PLUGIN_PIPE" ]; then
+if [ -n "$PLUGIN_CURL" -a -n "$PLUGIN_PIPE" ]; then
     set +e
     if verbose; then set -x; fi
 
@@ -84,7 +103,21 @@ if [ -n "$PLUGIN_PIPE" ]; then
         exit $retval
     fi
 fi
-rm /tmp/output
+rm -f /tmp/output
+
+# Run post-curl script
+if [ -n "$PLUGIN_EXEC_POST" ]; then
+    set +e
+    if verbose; then DEBUG=-x; fi
+    echo $PLUGIN_EXEC_POST | docker exec -i "$CONTAINER_ID" sh $DEBUG
+    retval=$?
+    set -e
+
+    if [ $retval != 0 ]; then
+        error "Post script exited with $retval"
+        exit $retval
+    fi
+fi
 
 # Remove the container
 trap ':' USR1
