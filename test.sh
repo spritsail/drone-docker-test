@@ -17,6 +17,7 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 # $PLUGIN_CURL_OPTS     additional options to pass to curl
 # $PLUGIN_RUN_ARGS      arguments to pass to `docker create`
 # $PLUGIN_RUN_CMD       override docker container CMD
+# $PLUGIN_RUN           override docker container CMD, with sh -c
 
 if [ -z "$PLUGIN_REPO" ]; then
     error "Missing 'repo' argument required for building"
@@ -27,6 +28,16 @@ DELAY=${PLUGIN_DELAY:-10}
 RETRY=${PLUGIN_RETRY:-5}
 RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
 
+
+# If PLUGIN_RUN is provided, just run the command in the container and exit
+if [ -n "$PLUGIN_RUN" ]; then
+    if verbose; then
+        RUN_DBG=x
+        set -x
+    fi
+
+    exec docker run --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" sh -c$RUN_DBG "$PLUGIN_RUN"
+fi
 
 # Start the container
 CONTAINER_ID="$(if verbose; then set -x; fi; docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
