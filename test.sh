@@ -20,7 +20,7 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 # $PLUGIN_RUN           override docker container CMD, with sh -c
 
 if [ -z "$PLUGIN_REPO" ]; then
-    error "Missing 'repo' argument required for building"
+    error "Missing 'repo' argument required for testing"
 fi
 
 
@@ -36,7 +36,7 @@ if [ -n "$PLUGIN_RUN" ]; then
         set -x
     fi
 
-    exec docker run --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" sh -c$RUN_DBG "$PLUGIN_RUN"
+    exec docker run --rm --entrypoint= $PLUGIN_RUN_ARGS "$PLUGIN_REPO" sh -c$RUN_DBG "$PLUGIN_RUN"
 fi
 
 # Start the container
