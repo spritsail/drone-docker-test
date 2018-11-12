@@ -44,6 +44,7 @@ CONTAINER_ID="$(if verbose; then set -x; fi; docker create --rm $PLUGIN_RUN_ARGS
 
 # Start the container and print the logs
 # and exit if the container stops
+trap 'docker kill $CONTAINER_ID >/dev/null 2>/dev/null' EXIT
 trap 'error "The container exited unexpectedly :("; exit 10' USR1
 ( docker start --attach --interactive "$CONTAINER_ID" ; kill -s USR1 $$ ) &
 
@@ -130,7 +131,5 @@ if [ -n "$PLUGIN_EXEC_POST" ]; then
     fi
 fi
 
-# Remove the container
+# Prevent error exiting when the container is removed
 trap ':' USR1
-docker kill "$CONTAINER_ID" >/dev/null 2>&1 || true
-docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true
