@@ -27,6 +27,12 @@ fi
 DELAY=${PLUGIN_DELAY:-10}
 RETRY=${PLUGIN_RETRY:-5}
 RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
+TIMEOUT=${PLUGIN_TIMEOUT:-10}
+
+# If not curling an only piping logs, don't wait
+if [ -z "$PLUGIN_CURL" -a -n "$PLUGIN_LOG_PIPE" ]; then
+    DELAY=0
+fi
 
 
 # If PLUGIN_RUN is provided, just run the command in the container and exit
@@ -60,6 +66,7 @@ if [ -z "$CONTAINER_IP" ]; then
 fi
 
 (
+if [ ${DELAY} -eq 0 ]; then exit 0; fi
 if verbose; then set -x; fi
 
 # Wait
@@ -77,6 +84,26 @@ if [ -n "$PLUGIN_EXEC_PRE" ]; then
     if [ $retval != 0 ]; then
         error "Pre script exited with $retval"
         exit $retval
+    fi
+fi
+
+if [ -n "$PLUGIN_LOG_PIPE" ]; then
+    set +e
+    if verbose; then PIPE_DBG=x; fi
+    timeout ${TIMEOUT} \
+        docker logs -f $CONTAINER_ID 2>&1 | (sh -c$PIPE_DBG "${PLUGIN_LOG_PIPE}" && pkill -PIPE timeout) # this is a horrible hack
+    retval=$?
+    set -e
+
+    # 141 is 128 + 13 (SIGPIPE), caused by (pkill induced) pipefail. This indicates success
+    if [ $retval != 141 ]; then
+        if [ $retval == 124 ]; then
+            error "Log output parsing timed out after ${TIMEOUT}s"
+            exit $retval
+        elif [ $retval != 0 ]; then
+            error "Log output parsing exited with $retval"
+            exit $retval
+        fi
     fi
 fi
 

@@ -15,6 +15,6 @@ LABEL maintainer="Spritsail <docker-plugin@spritsail.io>" \
 
 ADD test.sh label /usr/local/bin/
 RUN chmod 755 /usr/local/bin/*.sh && \
-    apk --no-cache add curl jq xmlstarlet grep
+    apk --no-cache add curl jq xmlstarlet grep coreutils
 
 ENTRYPOINT [ "/usr/local/bin/test.sh" ]
