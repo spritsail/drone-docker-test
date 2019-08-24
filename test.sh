@@ -34,6 +34,10 @@ if [ -z "$PLUGIN_CURL" -a -n "$PLUGIN_LOG_PIPE" ]; then
     DELAY=0
 fi
 
+if [ -n "$DOCKER_NETWORK_ID" ]; then
+    RUN_NETWORK="--network=$DOCKER_NETWORK_ID"
+fi
+
 
 # If PLUGIN_RUN is provided, just run the command in the container and exit
 if [ -n "$PLUGIN_RUN" ]; then
@@ -42,11 +46,11 @@ if [ -n "$PLUGIN_RUN" ]; then
         set -x
     fi
 
-    exec docker run --rm --entrypoint= $PLUGIN_RUN_ARGS "$PLUGIN_REPO" sh -c$RUN_DBG "$PLUGIN_RUN"
+    exec docker run --rm --entrypoint= $RUN_NETWORK $PLUGIN_RUN_ARGS "$PLUGIN_REPO" sh -c$RUN_DBG "$PLUGIN_RUN"
 fi
 
 # Start the container
-CONTAINER_ID="$(if verbose; then set -x; fi; docker create --rm $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
+CONTAINER_ID="$(if verbose; then set -x; fi; docker create --rm $RUN_NETWORK $PLUGIN_RUN_ARGS "$PLUGIN_REPO" $PLUGIN_RUN_CMD)"
 
 # Start the container and print the logs
 # and exit if the container stops
