@@ -34,8 +34,8 @@ if [ -z "$PLUGIN_CURL" -a -n "$PLUGIN_LOG_PIPE" ]; then
     DELAY=0
 fi
 
-if [ -n "$DOCKER_NETWORK_ID" ]; then
-    RUN_NETWORK="--network=$DOCKER_NETWORK_ID"
+if [ -n "$DRONE_DOCKER_NETWORK_ID" ]; then
+    RUN_NETWORK="--network=$DRONE_DOCKER_NETWORK_ID"
 fi
 
 
