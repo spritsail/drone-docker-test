@@ -26,16 +26,15 @@ steps:
   settings:
     from: test-dev
     repo: spritsail/docker-test
-  environment:
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    DOCKER_USERNAME:
+    username:
       from_secret: docker_username
+    password:
+      from_secret: docker_password
   when:
     branch:
     - master
     event:
-    - tag
+    - push
 
 ---
 kind: signature
