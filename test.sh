@@ -21,7 +21,7 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 
 if [ -z "$PLUGIN_REPO" ]; then
     if [ -n "$DRONE_STAGE_TOKEN" ]; then
-        PLUGIN_REPO="$DRONE_REPO_OWNER/$DRONE_REPO_NAME:$DRONE_STAGE_TOKEN"
+        export PLUGIN_REPO="$DRONE_REPO_OWNER/$DRONE_REPO_NAME:$DRONE_STAGE_TOKEN"
     else
         error "Missing 'repo' argument required for testing"
     fi
