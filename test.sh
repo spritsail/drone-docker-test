@@ -20,7 +20,11 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 # $PLUGIN_RUN           override docker container CMD, with sh -c
 
 if [ -z "$PLUGIN_REPO" ]; then
-    error "Missing 'repo' argument required for testing"
+    if [ -n "$DRONE_STAGE_TOKEN" ]; then
+        PLUGIN_REPO="$DRONE_REPO_OWNER/$DRONE_REPO_NAME:$DRONE_STAGE_TOKEN"
+    else
+        error "Missing 'repo' argument required for testing"
+    fi
 fi
 
 
