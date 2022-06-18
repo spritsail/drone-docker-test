@@ -1,11 +1,12 @@
 #!/bin/sh
+# vim: ft=sh et sw=4
 set -e
 set -o pipefail
 
 # ANSI colour escape sequences
 RED='\033[0;31m'
 RESET='\033[0m'
-error() { >&2 echo -e "${RED}Error: $@${RESET}"; }
+error() { >&2 printf "${RED}Error: %s${RESET}" "$@"; }
 
 verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 
@@ -20,8 +21,8 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 # $PLUGIN_RUN           override docker container CMD, with sh -c
 
 if [ -z "$PLUGIN_REPO" ]; then
-    if [ -n "$DRONE_STAGE_TOKEN" ]; then
-        export PLUGIN_REPO="$DRONE_REPO_OWNER/$DRONE_REPO_NAME:$DRONE_STAGE_TOKEN"
+    if [ -n "$DRONE_BUILD_NUMBER" ]; then
+        PLUGIN_REPO="drone/$DRONE_REPO/$DRONE_BUILD_NUMBER:$DRONE_STAGE_OS-$DRONE_STAGE_ARCH"
     else
         error "Missing 'repo' argument required for testing"
     fi
@@ -34,7 +35,7 @@ RETRY_DELAY=${PLUGIN_RETRY_DELAY:-5}
 TIMEOUT=${PLUGIN_TIMEOUT:-10}
 
 # If not curling an only piping logs, don't wait
-if [ -z "$PLUGIN_CURL" -a -n "$PLUGIN_LOG_PIPE" ]; then
+if [ -z "$PLUGIN_CURL" ] && [ -n "$PLUGIN_LOG_PIPE" ]; then
     DELAY=0
 fi
 
@@ -105,7 +106,7 @@ if [ -n "$PLUGIN_LOG_PIPE" ]; then
 
     # 141 is 128 + 13 (SIGPIPE), caused by (pkill induced) pipefail. This indicates success
     if [ $retval != 141 ]; then
-        if [ $retval == 124 ]; then
+        if [ $retval = 124 ]; then
             error "Log output parsing timed out after ${TIMEOUT}s"
             exit $retval
         elif [ $retval != 0 ]; then
@@ -136,7 +137,7 @@ if [ -n "$PLUGIN_CURL" ]; then
 fi
 
 # Test the output
-if [ -n "$PLUGIN_CURL" -a -n "$PLUGIN_PIPE" ]; then
+if [ -n "$PLUGIN_CURL" ] && [ -n "$PLUGIN_PIPE" ]; then
     set +e
     if verbose; then set -x; fi
 
