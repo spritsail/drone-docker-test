@@ -22,7 +22,11 @@ verbose() { test "$PLUGIN_VERBOSE" = true -o "$PLUGIN_VERBOSE" = 1; }
 
 if [ -z "$PLUGIN_REPO" ]; then
     if [ -n "$DRONE_BUILD_NUMBER" ]; then
-        PLUGIN_REPO="drone/$DRONE_REPO/$DRONE_BUILD_NUMBER:$DRONE_STAGE_OS-$DRONE_STAGE_ARCH"
+        if [ -n "$DOCKER_IMAGE_TOKEN" ]; then
+            PLUGIN_REPO="drone/$DRONE_REPO/$DRONE_BUILD_NUMBER/$DOCKER_IMAGE_TOKEN:$DRONE_STAGE_OS-$DRONE_STAGE_ARCH"
+        else
+            PLUGIN_REPO="drone/$DRONE_REPO/$DRONE_BUILD_NUMBER:$DRONE_STAGE_OS-$DRONE_STAGE_ARCH"
+        fi
     else
         error "Missing 'repo' argument required for testing"
     fi
