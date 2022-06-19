@@ -27,6 +27,7 @@ if [ -z "$PLUGIN_REPO" ]; then
         else
             PLUGIN_REPO="drone/$DRONE_REPO/$DRONE_BUILD_NUMBER:$DRONE_STAGE_OS-$DRONE_STAGE_ARCH"
         fi
+        export PLUGIN_REPO
     else
         error "Missing 'repo' argument required for testing"
     fi
