@@ -126,10 +126,11 @@ if [ -n "$PLUGIN_CURL" ]; then
     (
     if verbose; then set -x; fi
 
+    # https://stackoverflow.com/a/13554435
     curl -L \
+        --max-time 10 \
         --retry $RETRY \
         --retry-delay $RETRY_DELAY \
-        --retry-max-time 10 \
         --retry-connrefused \
         $PLUGIN_CURL_OPTS \
         "$CONTAINER_IP$PLUGIN_CURL" \
