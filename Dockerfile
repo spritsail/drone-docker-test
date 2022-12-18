@@ -5,12 +5,10 @@ FROM docker:${DOCKER_VER}
 ARG VCS_REF
 ARG DOCKER_VER
 
-LABEL maintainer="Spritsail <docker-plugin@spritsail.io>" \
-      org.label-schema.vendor="Spritsail" \
-      org.label-schema.name="docker-test" \
-      org.label-schema.description="A Drone CI plugin for testing Docker images" \
-      org.label-schema.version=${VCS_REF} \
-      io.spritsail.version.docker-test=${VCS_REF} \
+LABEL org.opencontainers.image.authors="Spritsail <docker-plugin@spritsail.io>" \
+      org.opencontainers.image.title="docker-test" \
+      org.opencontainers.image.description="A Drone CI plugin for testing Docker images" \
+      org.opencontainers.image.version=${VCS_REF} \
       io.spritsail.version.docker=${DOCKER_VER}
 
 ADD test.sh label /usr/local/bin/
