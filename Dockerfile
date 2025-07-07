@@ -11,8 +11,7 @@ LABEL org.opencontainers.image.authors="Spritsail <docker-plugin@spritsail.io>" 
       org.opencontainers.image.version=${VCS_REF} \
       io.spritsail.version.docker=${DOCKER_VER}
 
-ADD test.sh label /usr/local/bin/
-RUN chmod 755 /usr/local/bin/*.sh && \
-    apk --no-cache add curl jq xmlstarlet grep coreutils
+ADD --chmod=755 test.sh label /usr/local/bin/
+RUN apk --no-cache add curl jq xmlstarlet grep coreutils
 
 ENTRYPOINT [ "/usr/local/bin/test.sh" ]
